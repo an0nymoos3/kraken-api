@@ -1,5 +1,5 @@
-use super::data_formats::{CoinPriceData, OhlcResponse};
-use anyhow::Result;
+use super::data_formats::{CoinPriceResponse, OhlcResponse};
+use anyhow::{bail, Result};
 use reqwest::{self, Response};
 use serde_json::Value;
 
@@ -30,23 +30,23 @@ pub async fn get_ohlc_data(
     let response: Response = reqwest::get(&request).await?;
     let ohlc_data: Value = serde_json::from_str(&response.text().await?)?;
 
-    let mut prices = Vec::new();
-
     // Convert JSON Array into Vec<CoinPriceData>
     if let Some(result) = ohlc_data.get("result") {
         for (k, v) in result.as_object().unwrap() {
             if let Some(json_array) = v.as_array() {
-                prices = json_array
+                let prices: Vec<CoinPriceResponse> = json_array
                     .iter()
                     .map(|value| serde_json::from_value(value.clone()).unwrap())
-                    .collect::<Vec<CoinPriceData>>();
+                    .collect::<Vec<CoinPriceResponse>>();
+
+                // Return Rust representation of OHLC
+                return Ok(OhlcResponse {
+                    pair: pair.to_string(),
+                    prices,
+                });
             }
         }
     }
 
-    // Return Rust representation of OHLC
-    Ok(OhlcResponse {
-        pair: pair.to_string(),
-        prices,
-    })
+    bail!("Failed to parse OHLC data from kraken.com!")
 }
