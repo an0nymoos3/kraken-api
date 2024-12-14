@@ -1,21 +1,65 @@
-use super::data_formats::{CoinPriceResponse, OhlcResponse};
+use super::internal_data_formats::{CoinPriceResponse, OhlcResponse};
+use crate::utils::ohlc::{OhlcData, OhlcPriceInstance};
 use anyhow::{bail, Result};
 use reqwest::{self, Response};
 use serde_json::Value;
 
-/// Performs GET request to kraken.com API and return Ok(()) if response was received.
+/// Sends a system status request to the kraken.com API.
+///
+/// # Returns
+///
+/// Returns an empty `Result` on success or an error if the request fails.
+///
+/// # Example
+///
+/// ```rust
+/// if let Err(e) = get_kraken_status().await {
+///     // Handle the error
+/// }
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if the request fails.
 pub async fn get_kraken_status() -> Result<()> {
-    let response: Response = reqwest::get("https://api.kraken.com/0/public/SystemStatus").await?;
-    println!("Received response: {:?}", response);
+    let _: Response = reqwest::get("https://api.kraken.com/0/public/SystemStatus").await?;
     Ok(())
 }
 
-/// As the name suggests. Returns the OHLC data from kraken.com API.
+/// Fetches OHLC (Open, High, Low, Close) data for a specific trading pair.
+///
+/// # Parameters
+///
+/// - `pair`: The trading pair for which to fetch the OHLC data (e.g., `"XTCEUR"`).
+/// - `interval`: An optional time interval for the OHLC data in minutes (e.g., 15 for 15-minute intervals). Defaults to `None`.
+/// - `since`: An optional timestamp (in milliseconds) to fetch OHLC data starting from that point. Defaults to `None`.
+///
+/// # Returns
+///
+/// Returns a `Result` containing an `OhlcResponse` on success or an error if the request fails.
+///
+/// # Example
+///
+/// ```rust
+/// let result = get_ohlc_data("XTCEUR", Some(15), Some(1631500800000)).await;
+/// match result {
+///     Ok(response) => {
+///         // Handle the successful response
+///     },
+///     Err(error) => {
+///         // Handle the error
+///     }
+/// }
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if the request fails, or if the parameters are invalid.
 pub async fn get_ohlc_data(
     pair: &str,
     interval: Option<u32>,
     since: Option<u64>,
-) -> Result<OhlcResponse> {
+) -> Result<OhlcData> {
     let mut request: String = format!("https://api.kraken.com/0/public/OHLC?pair={}", pair);
 
     // Add optional parameters
@@ -32,21 +76,27 @@ pub async fn get_ohlc_data(
 
     // Convert JSON Array into Vec<CoinPriceData>
     if let Some(result) = ohlc_data.get("result") {
-        for (k, v) in result.as_object().unwrap() {
+        for (_k, v) in result.as_object().unwrap() {
             if let Some(json_array) = v.as_array() {
+                // Create an array of prices with serde_json
                 let prices: Vec<CoinPriceResponse> = json_array
                     .iter()
                     .map(|value| serde_json::from_value(value.clone()).unwrap())
                     .collect::<Vec<CoinPriceResponse>>();
 
+                // Use custom try_from to convert to proper Rust instance
+                let new_prices: Vec<OhlcPriceInstance> = prices
+                    .iter()
+                    .map(|price_instance| OhlcPriceInstance::from(price_instance.clone()))
+                    .collect::<Vec<OhlcPriceInstance>>();
+
                 // Return Rust representation of OHLC
-                return Ok(OhlcResponse {
+                return Ok(OhlcData {
                     pair: pair.to_string(),
-                    prices,
+                    prices: new_prices,
                 });
             }
         }
     }
-
     bail!("Failed to parse OHLC data from kraken.com!")
 }

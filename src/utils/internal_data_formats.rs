@@ -1,15 +1,16 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-/// Represents the format the crypto currencies are returned in from kraken.com
-#[derive(Debug, Serialize, Deserialize)]
+/// Internal data-structure for handling the response produced from the OHLC request to the kraken.com API.
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OhlcResponse {
     pub pair: String,
     pub prices: Vec<CoinPriceResponse>,
 }
 
-/// Helper struct for storing price data from a point in time.
-#[derive(Debug, Serialize, Deserialize)]
+/// Internal data-structure for handling the nested data within a response produced from the OHLC
+/// request to the kraken.com API.
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinPriceResponse {
     pub time: u64,
     pub open: String,
