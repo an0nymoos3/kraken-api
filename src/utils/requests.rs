@@ -100,3 +100,41 @@ pub async fn get_ohlc_data(
     }
     bail!("Failed to parse OHLC data from kraken.com!")
 }
+
+/// Sends a request to the Kraken.com API for all pairs available to trade.
+///
+/// # Returns
+///
+/// Returns a `Result` with a `Vec<String>` representing pairs on success or an error if the request fails.
+///
+/// # Example
+///
+/// ```rust
+/// use kraken_api::utils::requests::get_tradable_pairs;
+/// if let Err(e) = get_tradable_pairs().await {
+///     // Handle the error
+/// }
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if the request fails.
+pub async fn get_tradable_pairs() -> Result<Vec<String>> {
+    let request: &str = "https://api.kraken.com/0/public/AssetPairs";
+
+    // Request all pairs from kraken.com
+    let response: Response = reqwest::get(request).await?;
+    let json_response: Value = serde_json::from_str(&response.text().await?)?;
+
+    // Convert JSON Array into Vec<String>
+    if let Some(result) = json_response.get("result") {
+        let mut pairs: Vec<String> = Vec::new();
+        for (k, _v) in result.as_object().unwrap() {
+            pairs.push(k.to_string());
+        }
+
+        return Ok(pairs);
+    }
+
+    bail!("Failed to parse tradable pairs from kraken.com!")
+}
