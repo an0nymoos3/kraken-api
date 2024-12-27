@@ -1,3 +1,6 @@
 mod internal_data_formats;
-pub mod ohlc;
-pub mod requests;
+mod ohlc;
+mod requests;
+
+pub use ohlc::{OhlcData, OhlcPriceInstance};
+pub use requests::*;

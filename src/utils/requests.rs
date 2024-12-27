@@ -31,7 +31,7 @@ pub async fn get_kraken_status() -> Result<()> {
 ///
 /// # Parameters
 ///
-/// - `pair`: The trading pair for which to fetch the OHLC data (e.g., `"XTCEUR"`).
+/// - `pair`: The trading pair for which to fetch the OHLC data (e.g., `"XBTEUR"`).
 /// - `interval`: An optional time interval for the OHLC data in minutes (e.g., 15 for 15-minute intervals). Defaults to `None`.
 /// - `since`: An optional timestamp (in milliseconds) to fetch OHLC data starting from that point. Defaults to `None`.
 ///
@@ -42,7 +42,7 @@ pub async fn get_kraken_status() -> Result<()> {
 /// # Example
 ///
 /// ```rust
-/// let ohlc = match get_ohlc_data("XTCEUR", Some(15), Some(1631500800000)).await {
+/// let ohlc = match get_ohlc_data("XBTEUR", Some(15), Some(1631500800000)).await {
 ///     Ok(result) => result,
 ///     Err(e) => {
 ///         // Handle the error

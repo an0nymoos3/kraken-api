@@ -1,1 +1,3 @@
-pub mod sandbox_client;
+mod sandbox_client;
+
+pub use sandbox_client::SandboxClient;

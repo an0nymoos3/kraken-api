@@ -1,4 +1,4 @@
-use crate::utils::requests::latest_value;
+use crate::utils::latest_value;
 use anyhow::{bail, Result};
 use std::collections::HashMap;
 
@@ -15,7 +15,7 @@ pub struct SandboxClient {
     /// A `SandboxClient` must also have the currency that the user wants to use.
     fiat_currency: String,
 
-    /// Map of <pair, amoung> for tracking what crypto the user holds.
+    /// Map of <pair, amount> for tracking what crypto the user holds.
     crypto_holdings: HashMap<String, f64>,
 }
 
