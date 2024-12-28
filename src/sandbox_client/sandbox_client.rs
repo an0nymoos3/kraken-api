@@ -10,13 +10,13 @@ use std::collections::HashMap;
 #[derive(Debug)]
 pub struct SandboxClient {
     /// A `SandboxClient` must store its own balance as it cannot access the users balance via the API.
-    fiat_balance: f64,
+    fiat_balance: f32,
 
     /// A `SandboxClient` must also have the currency that the user wants to use.
     fiat_currency: String,
 
     /// Map of <pair, amount> for tracking what crypto the user holds.
-    crypto_holdings: HashMap<String, f64>,
+    crypto_holdings: HashMap<String, f32>,
 }
 
 impl SandboxClient {
@@ -36,7 +36,7 @@ impl SandboxClient {
     /// use sandbox_client::SandboxClient;
     /// let my_test_client = SandboxClient::new(1000.0, "EUR");
     /// ```
-    pub fn new(balance: f64, currency: &str) -> Self {
+    pub fn new(balance: f32, currency: &str) -> Self {
         Self {
             fiat_balance: balance,
             fiat_currency: currency.to_string(),
@@ -63,12 +63,12 @@ impl SandboxClient {
     ///     // Handle failure
     /// }
     /// ```
-    pub async fn buy(&mut self, pair: &str, amount: f64) -> Result<()> {
+    pub async fn buy(&mut self, pair: &str, amount: f32) -> Result<()> {
         if pair[pair.len() - 3..] != self.fiat_currency {
             bail!("Currently does not support trading with pairs with different fiat from account.")
         }
 
-        let price: f64 = latest_value(pair).await?;
+        let price: f32 = latest_value(pair).await?;
 
         // Subract the cost of buying the crypto
         self.fiat_balance -= price * amount;
@@ -78,7 +78,7 @@ impl SandboxClient {
             self.crypto_holdings.insert(pair.to_string(), amount);
         } else {
             // Replace existing investment with the existing investment + new investment
-            let account_amount: f64 = *self.crypto_holdings.get(pair).unwrap();
+            let account_amount: f32 = *self.crypto_holdings.get(pair).unwrap();
             self.crypto_holdings.remove(pair);
             self.crypto_holdings
                 .insert(pair.to_string(), account_amount + amount);
@@ -106,12 +106,12 @@ impl SandboxClient {
     ///     // Handle failure
     /// }
     /// ```
-    pub async fn sell(&mut self, pair: &str, amount: f64) -> Result<()> {
+    pub async fn sell(&mut self, pair: &str, amount: f32) -> Result<()> {
         if pair[pair.len() - 3..] != self.fiat_currency {
             bail!("Currently does not support trading with pairs with different fiat from account.")
         }
 
-        let price: f64 = latest_value(pair).await?;
+        let price: f32 = latest_value(pair).await?;
 
         if !self.crypto_holdings.contains_key(pair) {
             // Insert new investment into crypto holdings
@@ -119,10 +119,10 @@ impl SandboxClient {
         }
 
         // Subtract the amount of crypto in holdings
-        let mut account_amount: f64 = *self.crypto_holdings.get(pair).unwrap();
+        let mut account_amount: f32 = *self.crypto_holdings.get(pair).unwrap();
 
         // Cap maximum amount able to be sold to the amount holding.
-        let sold_amount: f64 = if account_amount > amount {
+        let sold_amount: f32 = if account_amount > amount {
             amount
         } else {
             account_amount

@@ -1,9 +1,8 @@
-use super::internal_data_formats::{CoinPriceResponse, OhlcResponse};
+use super::internal_data_formats::CoinPriceResponse;
 use crate::utils::ohlc::{OhlcData, OhlcPriceInstance};
 use anyhow::{bail, Result};
 use reqwest::{self, Response};
 use serde_json::Value;
-use std::any::Any;
 
 /// Sends a system status request to the kraken.com API.
 ///
@@ -161,7 +160,7 @@ pub async fn get_tradable_pairs() -> Result<Vec<String>> {
 /// # Errors
 ///
 /// This function will return an error if the request fails.
-pub async fn latest_value(pair: &str) -> Result<f64> {
+pub async fn latest_value(pair: &str) -> Result<f32> {
     let request: String = format!(
         "https://api.kraken.com/0/public/Trades?pair={}&count=1",
         pair
@@ -183,7 +182,7 @@ pub async fn latest_value(pair: &str) -> Result<f64> {
                         .unwrap()
                         .as_str()
                         .unwrap()
-                        .parse::<f64>()?);
+                        .parse::<f32>()?);
                 }
             }
         }
