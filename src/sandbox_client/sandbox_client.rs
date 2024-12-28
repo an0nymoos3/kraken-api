@@ -120,11 +120,20 @@ impl SandboxClient {
 
         // Subtract the amount of crypto in holdings
         let mut account_amount: f64 = *self.crypto_holdings.get(pair).unwrap();
-        account_amount -= amount;
+
+        // Cap maximum amount able to be sold to the amount holding.
+        let sold_amount: f64 = if account_amount > amount {
+            amount
+        } else {
+            account_amount
+        };
+
+        // Remove from holding
+        account_amount -= sold_amount;
         self.crypto_holdings.remove(pair);
 
         // Add balance back in fiat
-        self.fiat_balance += amount * price;
+        self.fiat_balance += sold_amount * price;
 
         // If any amount remains add it back to the accounts crypto holdings
         if account_amount > 0.0 {
