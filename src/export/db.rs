@@ -1,7 +1,7 @@
 use crate::utils::{OhlcData, OhlcPriceInstance};
 use anyhow::Result;
 use bincode;
-use rocksdb::{IteratorMode, Options, DB};
+use rocksdb::{IteratorMode, DB};
 
 /// Writes OHLC data to a rocksdb file.
 /// For performance/compactness the OHLC data is first serialized
@@ -73,7 +73,7 @@ pub fn write_to_db(db_path: &str, data: &OhlcData) -> Result<()> {
 pub fn read_from_db(db_path: &str, pair: &str) -> Result<OhlcData> {
     let db: DB = DB::open_default(db_path)?;
     let mut ohlc_prices: Vec<OhlcPriceInstance> = Vec::new();
-    let mut iter = db.iterator(IteratorMode::Start);
+    let iter = db.iterator(IteratorMode::Start);
 
     for item in iter {
         let (_k, v) = item?;

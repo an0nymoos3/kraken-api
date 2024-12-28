@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 /// Internal data-structure for handling the response produced from the OHLC request to the kraken.com API.
 #[derive(Debug, Serialize, Deserialize, Clone)]
