@@ -5,6 +5,11 @@ use std::fs::File;
 
 /// Exports OHLC data to csv file.
 ///
+/// # Parameters
+///
+/// - `filename`: Name of the CSV file that data is exported to. (e.g., "somefile.csv").
+/// - `data`: A reference to the `OhlcData` that should be exported.
+///
 /// # Returns
 ///
 /// Returns a `Result` indicating success of failure.
