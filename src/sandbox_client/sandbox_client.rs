@@ -70,6 +70,10 @@ impl SandboxClient {
 
         let price: f32 = latest_value(pair).await?;
 
+        if self.fiat_balance < price * amount {
+            bail!("Not enough balance in SandboxClient account!")
+        }
+
         // Subract the cost of buying the crypto
         self.fiat_balance -= price * amount;
 
