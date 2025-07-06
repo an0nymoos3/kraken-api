@@ -1,5 +1,9 @@
-use crate::utils::latest_value;
+use crate::{
+    store::{establish_connection, run_migrations},
+    utils::latest_value,
+};
 use anyhow::{bail, Result};
+use diesel::{migration::MigrationConnection, SqliteConnection};
 use std::collections::HashMap;
 
 // TODO: Support trading with pairs that don't contain same fiat as SandboxClient.
@@ -7,7 +11,6 @@ use std::collections::HashMap;
 /// A `SandboxClient` represents a fake instance of the account instance used to trade with the kraken.com API.
 /// The `SandboxClient` does not take any credentials to ensure it cannot even by mistake access the funds of the
 /// user. Therefore, things like balance is manually handed over to the `SandboxClient`.
-#[derive(Debug)]
 pub struct SandboxClient {
     /// A `SandboxClient` must store its own balance as it cannot access the users balance via the API.
     fiat_balance: f32,
@@ -17,6 +20,9 @@ pub struct SandboxClient {
 
     /// Map of <pair, amount> for tracking what crypto the user holds.
     crypto_holdings: HashMap<String, f32>,
+
+    /// Connection to database where SandboxClient can store trading history
+    db_conn: SqliteConnection,
 }
 
 impl SandboxClient {
@@ -37,10 +43,15 @@ impl SandboxClient {
     /// let my_test_client = SandboxClient::new(1000.0, "EUR");
     /// ```
     pub fn new(balance: f32, currency: &str) -> Self {
+        let mut conn: SqliteConnection =
+            establish_connection().expect("Failed to establish connection to sqlite db!");
+        run_migrations(&mut conn).expect("Failed to run migrations for sqlite db!");
+
         Self {
             fiat_balance: balance,
             fiat_currency: currency.to_string(),
             crypto_holdings: HashMap::new(),
+            db_conn: conn,
         }
     }
 

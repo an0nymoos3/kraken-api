@@ -1,3 +1,7 @@
+pub trait KrakenClient {
+    pub fn perform_trade() -> Result<()>;
+}
+
 /// A Client represents the account instance used to trade with the kraken.com API.
 pub struct Client {}
 
